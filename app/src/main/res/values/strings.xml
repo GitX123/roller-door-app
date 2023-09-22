@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Roller Door Controller</string>
+    <string name="height">%.1f cm</string>
+    <string name="controller_up">Up</string>
+    <string name="controller_stop">Stop</string>
+    <string name="controller_down">Down</string>
+</resources>
