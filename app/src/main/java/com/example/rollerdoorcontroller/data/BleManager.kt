@@ -2,6 +2,7 @@ package com.example.rollerdoorcontroller.data
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
@@ -9,9 +10,11 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -24,22 +27,24 @@ private const val TAG = "BleManager"
 class BleManager(
     private val appContext: Context // application context
 ) {
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val _bleData =  MutableSharedFlow<BleData>()
     val bleData = _bleData.asSharedFlow()
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothGatt: BluetoothGatt? = null
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                Log.i(TAG, "BLE connected")
                 coroutineScope.launch {
-                    _bleData.emit(BleData(connectionState = ConnectionState.Connected))
+                    _bleData.emit(BleData(deviceName = gatt.device.name,connectionState = ConnectionState.Connected))
                 }
                 bluetoothGatt?.discoverServices()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.i(TAG, "BLE disconnected")
                 coroutineScope.launch {
-                    _bleData.emit(BleData(connectionState = ConnectionState.Disconnected))
+                    _bleData.emit(BleData(deviceName = "", connectionState = ConnectionState.Disconnected))
                 }
             }
         }
@@ -63,6 +68,7 @@ class BleManager(
                 }
                 coroutineScope.launch {
                     _bleData.emit(BleData(
+                        deviceName = gatt.device.name,
                         connectionState = ConnectionState.Connected,
                         height = uintValue
                     ))
@@ -73,10 +79,14 @@ class BleManager(
         }
     }
 
-    // initialize bluetoothAdapter
     fun initialize(): Boolean {
         val bluetoothManager = appContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
+        if (bluetoothAdapter?.isEnabled == false) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            appContext.startActivity(enableBtIntent)
+        }
+
         if (bluetoothAdapter == null) {
             Log.w(TAG, "Unable to obtain a BluetoothAdapter")
             return false
@@ -86,6 +96,12 @@ class BleManager(
     }
 
     fun connect(deviceName: String) {
+        // reconnect
+        if (deviceName == bluetoothGatt?.device?.name) {
+            bluetoothGatt?.connect()
+            return
+        }
+
         bluetoothAdapter?.let { adapter ->
             adapter.bondedDevices.find { device ->
                 device.name == deviceName
@@ -104,6 +120,14 @@ class BleManager(
             gatt.close()
             bluetoothGatt = null
         }
+    }
+
+    fun disconnect() {
+        bluetoothGatt?.disconnect()
+    }
+
+    fun getBondedDevices(): Set<BluetoothDevice> {
+        return bluetoothAdapter?.bondedDevices ?: setOf()
     }
 
     private fun getCharacteristic(serviceUuid: String, characteristicUuid: String): BluetoothGattCharacteristic? {

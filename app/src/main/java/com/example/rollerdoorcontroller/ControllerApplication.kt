@@ -5,11 +5,10 @@ import com.example.rollerdoorcontroller.data.BleManager
 import com.example.rollerdoorcontroller.data.BleRepository
 
 class ControllerApplication : Application() {
-    val DeviceName = "Arduino"
-    val ServiceUuid = "00000020-0000-1000-8000-00805f9b34fb"
-    val heightCharacteristicUuid = "00000021-0000-1000-8000-00805f9b34fb"
+    val ServiceUuid = "d973f2e0-b19e-11e2-9e96-0800200c9a66"
+    val heightCharacteristicUuid = "d973f2e1-b19e-11e2-9e96-0800200c9a66"
     val heightDescriptorUuid = "00002902-0000-1000-8000-00805F9B34FB"
-    val controlCharacteristicUuid = "00000022-0000-1000-8000-00805f9b34fb"
+    val controlCharacteristicUuid = "d973f2e2-b19e-11e2-9e96-0800200c9a66"
 
     lateinit var bleRepository: BleRepository
     lateinit var bleManager: BleManager
@@ -18,7 +17,6 @@ class ControllerApplication : Application() {
         super.onCreate()
         bleManager = BleManager(appContext = applicationContext)
         bleRepository = BleRepository(
-            deviceName = DeviceName,
             serviceUuid = ServiceUuid,
             heightCharacteristicUuid = heightCharacteristicUuid,
             heightDescriptorUuid = heightDescriptorUuid,

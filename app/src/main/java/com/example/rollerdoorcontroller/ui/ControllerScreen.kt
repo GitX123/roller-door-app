@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -11,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,17 +31,20 @@ import com.example.rollerdoorcontroller.ui.theme.RollerDoorControllerTheme
 @Composable
 fun ControllerScreen(
     bleData: BleData,
-    navigateToStart: () -> Unit,
+    enableNotification: () -> Unit,
     setControlSignal: (ControlSignal) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // navigate back if connection is lost
-    if(bleData.connectionState != ConnectionState.Connected) {
-        navigateToStart()
+    if (bleData.connectionState == ConnectionState.Connected) {
+        LaunchedEffect(bleData.connectionState) {
+            enableNotification()
+        }
     }
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(
@@ -52,8 +57,7 @@ fun ControllerScreen(
                 fontSize = dimensionResource(id = R.dimen.height_info_size).value.sp,
                 fontWeight = FontWeight.Bold
             )
-
-            Spacer(modifier = Modifier.size(50.dp))
+            Spacer(modifier = Modifier.size(20.dp))
 
             // Up button
             IconButton(
@@ -63,7 +67,7 @@ fun ControllerScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_circle_up_24),
                     contentDescription = stringResource(id = R.string.controller_up),
-                    tint = Color.Green,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.icon_size))
                 )
@@ -77,7 +81,7 @@ fun ControllerScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_stop_circle_24),
                     contentDescription = stringResource(id = R.string.controller_stop),
-                    tint = Color.Red,
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.icon_size))
                 )
@@ -91,7 +95,7 @@ fun ControllerScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_circle_down_24),
                     contentDescription = stringResource(id = R.string.controller_down),
-                    tint = Color.Green,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.icon_size))
                 )
@@ -106,8 +110,8 @@ fun ControllerScreenPreview() {
     RollerDoorControllerTheme {
         ControllerScreen(
             bleData = BleData(height = 200u),
-            navigateToStart = {},
-            setControlSignal = {it -> }
+            enableNotification = {},
+            setControlSignal = {}
         )
     }
 }

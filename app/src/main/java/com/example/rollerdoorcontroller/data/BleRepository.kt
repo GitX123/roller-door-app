@@ -1,7 +1,8 @@
 package com.example.rollerdoorcontroller.data
 
+import android.bluetooth.BluetoothDevice
+
 class BleRepository(
-    private val deviceName: String,
     private val serviceUuid: String,
     private val heightCharacteristicUuid: String,
     private val heightDescriptorUuid: String,
@@ -14,8 +15,17 @@ class BleRepository(
         bleManager.initialize()
     }
 
-    fun connectBle() {
+    fun connectBle(deviceName: String) {
         bleManager.connect(deviceName)
+    }
+
+    fun disconnectBle() {
+        bleManager.disconnect()
+//        bleManager.close()
+    }
+
+    fun getBondedDevices(): Set<BluetoothDevice> {
+        return bleManager.getBondedDevices()
     }
 
     fun setHeightCharacteristicNotification(enable: Boolean) {

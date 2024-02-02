@@ -9,15 +9,18 @@ import com.example.rollerdoorcontroller.ControllerApplication
 import com.example.rollerdoorcontroller.data.BleRepository
 
 enum class ControlSignal(val value: Int) {
-    STOP(value = 0),
-    UP(value = 1),
-    DOWN(value = 2)
+    DOWN(value = 0),
+    STOP(value = 1),
+    UP(value = 2)
 }
 
 class ControllerViewModel(
     private val bleRepository: BleRepository
 ) : ViewModel() {
     val bleData = bleRepository.bleData
+    fun enableNotification() {
+        bleRepository.setHeightCharacteristicNotification(true)
+    }
 
     fun setControlSignal(signal: ControlSignal) {
         when (signal) {
